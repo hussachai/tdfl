@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	
+	<bean id="successResCreator" class="com.siberhus.tdfl.DefaultResourceCreator">
+		<property name="subdirectory" value="success" />
+		<property name="suffix" value=".ok"/>
+		<property name="extension" value="xls"/>
+	</bean>
+	<bean id="csvWriter" scope="prototype" class="com.siberhus.tdfl.csv.CSVDataFileWriter" />
+	<bean id="excelWriter" scope="prototype" class="com.siberhus.tdfl.excel.ExcelDataFileWriter" />
+	
+	<bean id="excelFileHandler" class="com.siberhus.tdfl.DefaultDataFileHandler">
+		<property name="extensions" value="xls,xlsx"/>
+		<property name="reader">
+			<bean class="com.siberhus.tdfl.excel.ExcelDataFileReader" />
+		</property>
+		<property name="errorWriter">
+			<ref bean="excelWriter"/>
+		</property>
+		<property name="successWriter">
+			<ref bean="excelWriter"/>
+		</property>
+		<property name="successResourceCreator" ref="successResCreator"/>
+	</bean>
+	<bean id="csvFileHandler" class="com.siberhus.tdfl.DefaultDataFileHandler">
+		<property name="extensions" value="csv"/>
+		<property name="reader">
+			<bean class="com.siberhus.tdfl.csv.CSVDataFileReader" />
+		</property>
+		<property name="errorWriter">
+			<ref bean="csvWriter"/>
+		</property>
+		<property name="successWriter">
+			<ref bean="csvWriter"/>
+		</property>
+	</bean>
+	
+	<util:list id="handlers" scope="prototype">		
+		<ref bean="excelFileHandler"/>
+		<ref bean="csvFileHandler"/>
+	</util:list>
+	
+	<bean id="employeeDfp" scope="prototype" class="com.siberhus.tdfl.processor.EmployeeDfp" />
+	<bean id="employeeBeanWrapDfp" scope="prototype" class="com.siberhus.tdfl.processor.EmployeeBeanWrapDfp">
+		<property name="lineMapper">
+			<bean class="com.siberhus.tdfl.mapping.BeanWrapLineMapper">
+				<property name="targetType" value="com.siberhus.tdfl.Employee"/>
+			</bean>
+		</property>
+	</bean>
+	<bean id="longRunningDfp" scope="prototype" class="com.siberhus.tdfl.processor.LongRunningDfp">
+		<property name="lineMapper">
+			<bean class="com.siberhus.tdfl.mapping.BeanWrapLineMapper">
+				<property name="targetType" value="com.siberhus.tdfl.Employee"/>
+			</bean>
+		</property>
+	</bean>
+	<bean id="employeeDfl" class="com.siberhus.tdfl.DataFileLoader" scope="prototype">
+		<property name="dataFileHandlers" ref="handlers"/>
+		<!-- Set processor -->
+		<!-- Set Resource(Input) -->
+		<!-- Set Destination (Output) -->
+	</bean> 
+	
+</beans>
